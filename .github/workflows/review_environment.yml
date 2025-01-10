@@ -1,0 +1,62 @@
+name: Test pilets via gha-runner
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  pilet_manager_test_dev:
+    continue-on-error: true
+    runs-on: gha-org-cloudability-eng
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Retrieve Token from Kubernetes Runner
+        id: retrieve_token
+        run: |
+          # Retrieve the token
+          TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+          
+            if [[ -z "$TOKEN" ]]; then
+              echo "Error: Token could not be retrieved or is empty."
+              exit 1
+            fi
+          # Set the token as an environment variable for subsequent steps
+          echo "TOKEN=$TOKEN" >> $GITHUB_ENV
+      - name: Make API Call to pilet manager one
+        id: api_call_1
+        run: |
+          # Make the API call
+          RESPONSE=$(curl -s -X GET "https://pilet-manager-mr174.apps.dapt.to/api/v1/pilet/alpha/%40pss%2Fplayground/tags" \
+          -H "Authorization: bearer ${{ env.TOKEN }}")
+          echo "API Response: $RESPONSE"
+          # Save the response to an environment variable
+          echo "response=$RESPONSE" >> $GITHUB_ENV
+  pilet_manager_test_auth_on_gov-eng:
+    continue-on-error: true
+    needs: build_and_push
+    runs-on: gha-org-cloudability-gov-eng
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Retrieve Token from Kubernetes Runner
+        id: retrieve_token
+        run: |
+          # Retrieve the token
+          TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+
+            if [[ -z "$TOKEN" ]]; then
+              echo "Error: Token could not be retrieved or is empty."
+              exit 1
+            fi
+          # Set the token as an environment variable for subsequent steps
+          echo "TOKEN=$TOKEN" >> $GITHUB_ENV
+      - name: Make API Call to pilet manager one
+        id: api_call_1
+        run: |
+          # Make the API call
+          RESPONSE=$(curl -s -X GET "https://pilet-ugw1g-stage.apps.gapt.to/api/v1/pilet/usgov-eng/%40pss%2Fplayground/tags" \
+          -H "Authorization: bearer ${{ env.TOKEN }}")
+          echo "API Response: $RESPONSE"
+          # Save the response to an environment variable
+          echo "response=$RESPONSE" >> $GITHUB_ENV
