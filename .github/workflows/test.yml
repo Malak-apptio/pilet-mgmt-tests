@@ -34,7 +34,6 @@ jobs:
           echo "response=$RESPONSE" >> $GITHUB_ENV
   pilet_manager_test_auth_on_gov-eng:
     continue-on-error: true
-    needs: build_and_push
     runs-on: gha-org-cloudability-gov-eng
     steps:
       - name: Checkout code
